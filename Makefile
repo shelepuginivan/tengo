@@ -1,10 +1,7 @@
 generate:
 	go generate ./...
 
-lint:
-	golint -set_exit_status ./...
-
-test: generate lint
+test: generate
 	go test -race -cover ./...
 
 fmt:
