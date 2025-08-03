@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/d5/tengo/v2"
-	"github.com/d5/tengo/v2/parser"
-	"github.com/d5/tengo/v2/require"
-	"github.com/d5/tengo/v2/stdlib"
-	"github.com/d5/tengo/v2/token"
+	"github.com/shelepuginivan/tengo"
+	"github.com/shelepuginivan/tengo/parser"
+	"github.com/shelepuginivan/tengo/require"
+	"github.com/shelepuginivan/tengo/stdlib"
+	"github.com/shelepuginivan/tengo/token"
 )
 
 const testOut = "out"

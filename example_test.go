@@ -3,7 +3,7 @@ package tengo_test
 import (
 	"fmt"
 
-	"github.com/d5/tengo/v2"
+	"github.com/shelepuginivan/tengo"
 )
 
 func Example() {

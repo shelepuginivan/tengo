@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/d5/tengo/v2/parser"
-	"github.com/d5/tengo/v2/require"
-	"github.com/d5/tengo/v2/token"
+	"github.com/shelepuginivan/tengo/parser"
+	"github.com/shelepuginivan/tengo/require"
+	"github.com/shelepuginivan/tengo/token"
 )
 
 var testFileSet = parser.NewFileSet()

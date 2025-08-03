@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/d5/tengo/v2"
+	"github.com/shelepuginivan/tengo"
 )
 
 func TestTextRE(t *testing.T) {

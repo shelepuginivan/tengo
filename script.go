@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/d5/tengo/v2/parser"
+	"github.com/shelepuginivan/tengo/parser"
 )
 
 const reservedVar = "$out"

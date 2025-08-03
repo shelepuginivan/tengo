@@ -3,7 +3,7 @@ package stdlib_test
 import (
 	"testing"
 
-	"github.com/d5/tengo/v2"
+	"github.com/shelepuginivan/tengo"
 )
 
 func TestTextREAlternation(t *testing.T) {

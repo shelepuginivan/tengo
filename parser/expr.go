@@ -3,7 +3,7 @@ package parser
 import (
 	"strings"
 
-	"github.com/d5/tengo/v2/token"
+	"github.com/shelepuginivan/tengo/token"
 )
 
 // Expr represents an expression node in the AST.

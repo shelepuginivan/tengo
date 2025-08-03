@@ -3,7 +3,7 @@ package stdlib
 import (
 	"regexp"
 
-	"github.com/d5/tengo/v2"
+	"github.com/shelepuginivan/tengo"
 )
 
 func makeTextRegexp(re *regexp.Regexp) *tengo.ImmutableMap {
