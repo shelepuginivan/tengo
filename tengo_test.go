@@ -3,7 +3,6 @@ package tengo_test
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/shelepuginivan/tengo"
 	"github.com/shelepuginivan/tengo/parser"
@@ -105,7 +104,6 @@ func TestNumObjects(t *testing.T) {
 		}},
 	}}, 7)
 	testCountObjects(t, &tengo.String{Value: "foo bar"}, 1)
-	testCountObjects(t, &tengo.Time{Value: time.Now()}, 1)
 	testCountObjects(t, tengo.UndefinedValue, 1)
 }
 

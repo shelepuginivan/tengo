@@ -46,10 +46,6 @@ var builtinFuncs = []*BuiltinFunction{
 		Value: builtinBytes,
 	},
 	{
-		Name:  "time",
-		Value: builtinTime,
-	},
-	{
 		Name:  "is_int",
 		Value: builtinIsInt,
 	},
@@ -92,10 +88,6 @@ var builtinFuncs = []*BuiltinFunction{
 	{
 		Name:  "is_iterable",
 		Value: builtinIsIterable,
-	},
-	{
-		Name:  "is_time",
-		Value: builtinIsTime,
 	},
 	{
 		Name:  "is_error",
@@ -234,16 +226,6 @@ func builtinIsImmutableMap(args ...Object) (Object, error) {
 		return nil, ErrWrongNumArguments
 	}
 	if _, ok := args[0].(*ImmutableMap); ok {
-		return TrueValue, nil
-	}
-	return FalseValue, nil
-}
-
-func builtinIsTime(args ...Object) (Object, error) {
-	if len(args) != 1 {
-		return nil, ErrWrongNumArguments
-	}
-	if _, ok := args[0].(*Time); ok {
 		return TrueValue, nil
 	}
 	return FalseValue, nil
@@ -534,24 +516,6 @@ func builtinBytes(args ...Object) (Object, error) {
 			return nil, ErrBytesLimit
 		}
 		return &Bytes{Value: v}, nil
-	}
-	if argsLen == 2 {
-		return args[1], nil
-	}
-	return UndefinedValue, nil
-}
-
-func builtinTime(args ...Object) (Object, error) {
-	argsLen := len(args)
-	if !(argsLen == 1 || argsLen == 2) {
-		return nil, ErrWrongNumArguments
-	}
-	if _, ok := args[0].(*Time); ok {
-		return args[0], nil
-	}
-	v, ok := ToTime(args[0])
-	if ok {
-		return &Time{Value: v}, nil
 	}
 	if argsLen == 2 {
 		return args[1], nil

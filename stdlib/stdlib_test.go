@@ -3,7 +3,6 @@ package stdlib_test
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/shelepuginivan/tengo"
 	"github.com/shelepuginivan/tengo/require"
@@ -216,8 +215,6 @@ func object(v interface{}) tengo.Object {
 		}
 
 		return &tengo.ImmutableArray{Value: objs}
-	case time.Time:
-		return &tengo.Time{Value: v}
 	case []int:
 		var objs []tengo.Object
 		for _, e := range v {

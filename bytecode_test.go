@@ -3,7 +3,6 @@ package tengo_test
 import (
 	"bytes"
 	"testing"
-	"time"
 
 	"github.com/shelepuginivan/tengo"
 	"github.com/shelepuginivan/tengo/parser"
@@ -94,7 +93,6 @@ func TestBytecode(t *testing.T) {
 						},
 					},
 					"string":    &tengo.String{Value: "foo bar"},
-					"time":      &tengo.Time{Value: time.Now()},
 					"undefined": tengo.UndefinedValue,
 				},
 			},

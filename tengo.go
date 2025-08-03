@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 var (
@@ -182,19 +181,6 @@ func ToByteSlice(o Object) (v []byte, ok bool) {
 	return
 }
 
-// ToTime will try to convert object o to time.Time value.
-func ToTime(o Object) (v time.Time, ok bool) {
-	switch o := o.(type) {
-	case *Time:
-		v = o.Value
-		ok = true
-	case *Int:
-		v = time.Unix(o.Value, 0)
-		ok = true
-	}
-	return
-}
-
 // ToInterface attempts to convert an object o to an interface{} value
 func ToInterface(o Object) (res interface{}) {
 	switch o := o.(type) {
@@ -230,8 +216,6 @@ func ToInterface(o Object) (res interface{}) {
 		for key, v := range o.Value {
 			res.(map[string]interface{})[key] = ToInterface(v)
 		}
-	case *Time:
-		res = o.Value
 	case *Error:
 		res = errors.New(o.String())
 	case *Undefined:
@@ -298,8 +282,6 @@ func FromInterface(v interface{}) (Object, error) {
 			arr[i] = vo
 		}
 		return &Array{Value: arr}, nil
-	case time.Time:
-		return &Time{Value: v}, nil
 	case Object:
 		return v, nil
 	case CallableFunc:

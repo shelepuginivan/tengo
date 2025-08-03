@@ -744,8 +744,6 @@ func TestBuiltinFunction(t *testing.T) {
 		`invalid type for argument 'first'`)
 	expectError(t, `delete(undefined, 1)`, nil,
 		`invalid type for argument 'first'`)
-	expectError(t, `delete(time(1257894000), 1)`, nil,
-		`invalid type for argument 'first'`)
 	expectError(t, `delete(immutable({}), "key")`, nil,
 		`invalid type for argument 'first'`)
 	expectError(t, `delete(immutable([]), "")`, nil,
@@ -762,8 +760,6 @@ func TestBuiltinFunction(t *testing.T) {
 	expectError(t, `delete({}, bytes("str"))`, nil,
 		`invalid type for argument 'second'`)
 	expectError(t, `delete({}, char(35))`, nil,
-		`invalid type for argument 'second'`)
-	expectError(t, `delete({}, time(1257894000))`, nil,
 		`invalid type for argument 'second'`)
 	expectError(t, `delete({}, immutable({}))`, nil,
 		`invalid type for argument 'second'`)
@@ -791,8 +787,6 @@ func TestBuiltinFunction(t *testing.T) {
 		`invalid type for argument 'first'`)
 	expectError(t, `splice(undefined)`, nil,
 		`invalid type for argument 'first'`)
-	expectError(t, `splice(time(1257894000))`, nil,
-		`invalid type for argument 'first'`)
 	expectError(t, `splice(immutable({}))`, nil,
 		`invalid type for argument 'first'`)
 	expectError(t, `splice(immutable([]))`, nil,
@@ -811,8 +805,6 @@ func TestBuiltinFunction(t *testing.T) {
 	expectError(t, `splice([], char('d'))`, nil,
 		`invalid type for argument 'second'`)
 	expectError(t, `splice([], undefined)`, nil,
-		`invalid type for argument 'second'`)
-	expectError(t, `splice([], time(0))`, nil,
 		`invalid type for argument 'second'`)
 	expectError(t, `splice([], [])`, nil,
 		`invalid type for argument 'second'`)
@@ -835,8 +827,6 @@ func TestBuiltinFunction(t *testing.T) {
 	expectError(t, `splice([], 0, char('f'))`, nil,
 		`invalid type for argument 'third'`)
 	expectError(t, `splice([], 0, undefined)`, nil,
-		`invalid type for argument 'third'`)
-	expectError(t, `splice([], 0, time(0))`, nil,
 		`invalid type for argument 'third'`)
 	expectError(t, `splice([], 0, [])`, nil,
 		`invalid type for argument 'third'`)
@@ -1097,8 +1087,6 @@ export func() {
 		"Runtime Error: invalid slice index type: bool")
 	expectError(t, `a := "hello"; b := a[:1.23];`, nil,
 		"Runtime Error: invalid slice index type: float")
-	expectError(t, `a := bytes("world"); b := a[:time(1)];`, nil,
-		"Runtime Error: invalid slice index type: time")
 }
 
 func TestVMErrorUnwrap(t *testing.T) {

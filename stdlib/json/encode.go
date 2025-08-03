@@ -242,12 +242,6 @@ func Encode(o tengo.Object) ([]byte, error) {
 		// string encoding bug is fixed with newly introduced function
 		// encodeString(). See: https://github.com/d5/tengo/issues/268
 		b = encodeString(b, o.Value)
-	case *tengo.Time:
-		y, err := o.Value.MarshalJSON()
-		if err != nil {
-			return nil, err
-		}
-		b = append(b, y...)
 	case *tengo.Undefined:
 		b = append(b, "null"...)
 	default:

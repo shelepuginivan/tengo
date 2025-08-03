@@ -49,7 +49,7 @@ func TestFileStatFile(t *testing.T) {
 	module(t, "os").call("stat", tf.Name()).expect(&tengo.ImmutableMap{
 		Value: map[string]tengo.Object{
 			"name":      &tengo.String{Value: stat.Name()},
-			"mtime":     &tengo.Time{Value: stat.ModTime()},
+			"mtime":     tengo.UndefinedValue, // FIXME: add better alternative for builtin Time
 			"size":      &tengo.Int{Value: stat.Size()},
 			"mode":      &tengo.Int{Value: int64(stat.Mode())},
 			"directory": tengo.FalseValue,
@@ -68,7 +68,7 @@ func TestFileStatDir(t *testing.T) {
 	module(t, "os").call("stat", td).expect(&tengo.ImmutableMap{
 		Value: map[string]tengo.Object{
 			"name":      &tengo.String{Value: stat.Name()},
-			"mtime":     &tengo.Time{Value: stat.ModTime()},
+			"mtime":     tengo.UndefinedValue, // FIXME: add better alternative for builtin Time
 			"size":      &tengo.Int{Value: stat.Size()},
 			"mode":      &tengo.Int{Value: int64(stat.Mode())},
 			"directory": tengo.TrueValue,

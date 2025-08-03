@@ -292,7 +292,6 @@ func init() {
 	gob.Register(&Int{})
 	gob.Register(&Map{})
 	gob.Register(&String{})
-	gob.Register(&Time{})
 	gob.Register(&Undefined{})
 	gob.Register(&UserFunction{})
 }

@@ -244,7 +244,7 @@ func osStat(args ...tengo.Object) (ret tengo.Object, err error) {
 	fstat := &tengo.ImmutableMap{
 		Value: map[string]tengo.Object{
 			"name":  &tengo.String{Value: stat.Name()},
-			"mtime": &tengo.Time{Value: stat.ModTime()},
+			"mtime": tengo.UndefinedValue, // FIXME: add better alternative for builtin Time
 			"size":  &tengo.Int{Value: stat.Size()},
 			"mode":  &tengo.Int{Value: int64(stat.Mode())},
 		},
