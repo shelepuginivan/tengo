@@ -1,8 +1,8 @@
 # The Tengo Language
 
-[![GoDoc](https://godoc.org/github.com/d5/tengo/v2?status.svg)](https://godoc.org/github.com/d5/tengo/v2)
-![test](https://github.com/d5/tengo/workflows/test/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/d5/tengo)](https://goreportcard.com/report/github.com/d5/tengo)
+[![pkg.go.dev](https://pkg.go.dev/badge/github.com/shelepuginivan/tengo.svg)](https://pkg.go.dev/github.com/shelepuginivan/tengo)
+[![Test](https://github.com/shelepuginivan/tengo/actions/workflows/test.yml/badge.svg)](https://github.com/shelepuginivan/tengo/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/shelepuginivan/tengo)](https://goreportcard.com/report/github.com/shelepuginivan/tengo)
 
 **Tengo is a small, dynamic, fast, secure script language for Go.** 
 
@@ -29,6 +29,20 @@ fmt.println(sum("", [1, 2, 3]))  // "123"
 > Test this Tengo code in the
 > [Tengo Playground](https://tengolang.com/?s=0c8d5d0d88f2795a7093d7f35ae12c3afa17bea3)
 
+## About This Fork
+
+This repository is a fork of [Tengo](https://github.com/d5/tengo), customized
+specifically for one of my personal projects. The key changes made here
+include:
+
+- Simplified calling of Tengo functions from Go code (based on
+  [ozanh/tengox](https://github.com/ozanh/tengox))
+- Removal of some unused features
+- Modifications to the standard library
+
+Please note that this fork is not intended as a general replacement for the
+original package. I strongly recommend using the upstream package instead.
+
 ## Features
 
 - Simple and highly readable
@@ -39,9 +53,6 @@ fmt.println(sum("", [1, 2, 3]))  // "123"
 - [Securely Embeddable](https://github.com/d5/tengo/blob/master/docs/interoperability.md)
   and [Extensible](https://github.com/d5/tengo/blob/master/docs/objects.md)
 - Compiler/runtime written in native Go _(no external deps or cgo)_
-- Executable as a
-  [standalone](https://github.com/d5/tengo/blob/master/docs/tengo-cli.md)
-  language / REPL
 - Use cases: rules engine, [state machine](https://github.com/d5/go-fsm),
   data pipeline, [transpiler](https://github.com/d5/tengo2lua)
 
@@ -73,10 +84,11 @@ _* See [here](https://github.com/d5/tengobench) for commands/codes used_
 ## Quick Start
 
 ```
-go get github.com/d5/tengo/v2
+go get github.com/shelepuginivan/tengo
 ```
 
-A simple Go example code that compiles/runs Tengo script code with some input/output values:
+A simple Go example code that compiles/runs Tengo script code with some
+input/output values:
 
 ```golang
 package main
@@ -85,7 +97,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/d5/tengo/v2"
+	"github.com/shelepuginivan/tengo"
 )
 
 func main() {
@@ -109,7 +121,7 @@ each([a, b, c, d], func(x) {
 	_ = script.Add("d", 4)
 
 	// run the script
-	compiled, err := script.RunContext(context.Background())
+	compiled, err := script.CompileRun()
 	if err != nil {
 		panic(err)
 	}
@@ -121,7 +133,9 @@ each([a, b, c, d], func(x) {
 }
 ```
 
-Or, if you need to evaluate a simple expression, you can use [Eval](https://pkg.go.dev/github.com/d5/tengo/v2#Eval) function instead:
+Or, if you need to evaluate a simple expression, you can use
+[Eval](https://pkg.go.dev/github.com/shelepuginivan/tengo#Eval) function
+instead:
 
 
 ```golang
@@ -136,15 +150,13 @@ fmt.Println(res) // "success"
 
 ## References
 
-- [Language Syntax](https://github.com/d5/tengo/blob/master/docs/tutorial.md)
-- [Object Types](https://github.com/d5/tengo/blob/master/docs/objects.md)
-- [Runtime Types](https://github.com/d5/tengo/blob/master/docs/runtime-types.md)
-  and [Operators](https://github.com/d5/tengo/blob/master/docs/operators.md)
-- [Builtin Functions](https://github.com/d5/tengo/blob/master/docs/builtins.md)
-- [Interoperability](https://github.com/d5/tengo/blob/master/docs/interoperability.md)
-- [Tengo CLI](https://github.com/d5/tengo/blob/master/docs/tengo-cli.md)
-- [Standard Library](https://github.com/d5/tengo/blob/master/docs/stdlib.md)
+- [Language Syntax](https://github.com/shelepuginivan/tengo/blob/master/docs/tutorial.md)
+- [Object Types](https://github.com/shelepuginivan/tengo/blob/master/docs/objects.md)
+- [Runtime Types](https://github.com/shelepuginivan/tengo/blob/master/docs/runtime-types.md)
+  and [Operators](https://github.com/shelepuginivan/tengo/blob/master/docs/operators.md)
+- [Builtin Functions](https://github.com/shelepuginivan/tengo/blob/master/docs/builtins.md)
+- [Interoperability](https://github.com/shelepuginivan/tengo/blob/master/docs/interoperability.md)
+- [Tengo CLI](https://github.com/shelepuginivan/tengo/blob/master/docs/tengo-cli.md)
+- [Standard Library](https://github.com/shelepuginivan/tengo/blob/master/docs/stdlib.md)
 - Syntax Highlighters: [VSCode](https://github.com/lissein/vscode-tengo), [Atom](https://github.com/d5/tengo-atom), [Vim](https://github.com/geseq/tengo-vim)
 - **Why the name Tengo?** It's from [1Q84](https://en.wikipedia.org/wiki/1Q84).
-
-
