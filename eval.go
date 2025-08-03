@@ -27,7 +27,7 @@ func Eval(
 			return nil, fmt.Errorf("script add: %w", err)
 		}
 	}
-	compiled, err := script.RunContext(ctx)
+	compiled, err := script.CompileRunContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("script run: %w", err)
 	}

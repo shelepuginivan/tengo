@@ -1,7 +1,6 @@
 package tengo_test
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/d5/tengo/v2"
@@ -31,7 +30,7 @@ each([a, b, c, d], func(x) {
 	_ = script.Add("d", 4)
 
 	// run the script
-	compiled, err := script.RunContext(context.Background())
+	compiled, err := script.CompileRun()
 	if err != nil {
 		panic(err)
 	}

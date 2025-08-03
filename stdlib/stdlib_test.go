@@ -233,7 +233,7 @@ func object(v interface{}) tengo.Object {
 func expect(t *testing.T, input string, expected interface{}) {
 	s := tengo.NewScript([]byte(input))
 	s.SetImports(stdlib.GetModuleMap(stdlib.AllModuleNames()...))
-	c, err := s.Run()
+	c, err := s.CompileRun()
 	require.NoError(t, err)
 	require.NotNil(t, c)
 	v := c.Get("out")

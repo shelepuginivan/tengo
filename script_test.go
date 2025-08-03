@@ -4,18 +4,50 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/d5/tengo/v2"
 	"github.com/d5/tengo/v2/require"
 	"github.com/d5/tengo/v2/stdlib"
 	"github.com/d5/tengo/v2/token"
 )
+
+const module = `
+add := func(a, b, ...c) {
+	r := a + b
+	for v in c {
+		r += v
+	}
+	return r
+}
+
+mul := func(a, b, ...c) {
+	r := a * b
+	for v in c {
+		r *= v
+	}
+	return r
+}
+
+square := func(a) {
+	return mul(a, a)
+}
+
+fib := func(x) {
+	if x == 0 {
+		return 0
+	} else if x == 1 {
+		return 1
+	}
+	return fib(x-1) + fib(x-2)
+}
+
+stringer := func(s) {
+	return string(s)
+}
+`
 
 func TestScript_Add(t *testing.T) {
 	s := tengo.NewScript([]byte(`a := b; c := test(b); d := test(5)`))
@@ -32,9 +64,8 @@ func TestScript_Add(t *testing.T) {
 
 			return &tengo.Int{Value: 0}, nil
 		}))
-	c, err := s.Compile()
+	c, err := s.CompileRun()
 	require.NoError(t, err)
-	require.NoError(t, c.Run())
 	require.Equal(t, "foo", c.Get("a").Value())
 	require.Equal(t, "foo", c.Get("b").Value())
 	require.Equal(t, int64(0), c.Get("c").Value())
@@ -46,40 +77,18 @@ func TestScript_Remove(t *testing.T) {
 	err := s.Add("b", 5)
 	require.NoError(t, err)
 	require.True(t, s.Remove("b")) // b is removed
-	_, err = s.Compile()           // should not compile because b is undefined
+	_, err = s.CompileRun()        // should not compile because b is undefined
 	require.Error(t, err)
 }
 
-func TestScript_Run(t *testing.T) {
+func TestScript_CompileRun(t *testing.T) {
 	s := tengo.NewScript([]byte(`a := b`))
 	err := s.Add("b", 5)
 	require.NoError(t, err)
-	c, err := s.Run()
+	c, err := s.CompileRun()
 	require.NoError(t, err)
 	require.NotNil(t, c)
 	compiledGet(t, c, "a", int64(5))
-}
-
-func TestScript_BuiltinModules(t *testing.T) {
-	s := tengo.NewScript([]byte(`math := import("math"); a := math.abs(-19.84)`))
-	s.SetImports(stdlib.GetModuleMap("math"))
-	c, err := s.Run()
-	require.NoError(t, err)
-	require.NotNil(t, c)
-	compiledGet(t, c, "a", 19.84)
-
-	c, err = s.Run()
-	require.NoError(t, err)
-	require.NotNil(t, c)
-	compiledGet(t, c, "a", 19.84)
-
-	s.SetImports(stdlib.GetModuleMap("os"))
-	_, err = s.Run()
-	require.Error(t, err)
-
-	s.SetImports(nil)
-	_, err = s.Run()
-	require.Error(t, err)
 }
 
 func TestScript_SourceModules(t *testing.T) {
@@ -90,141 +99,290 @@ a := enum.all([1,2,3], func(_, v) {
 })
 `))
 	s.SetImports(stdlib.GetModuleMap("enum"))
-	c, err := s.Run()
+	c, err := s.CompileRun()
 	require.NoError(t, err)
 	require.NotNil(t, c)
 	compiledGet(t, c, "a", true)
 
 	s.SetImports(nil)
-	_, err = s.Run()
+	_, err = s.CompileRun()
 	require.Error(t, err)
 }
 
-func TestScript_SetMaxConstObjects(t *testing.T) {
-	// one constant '5'
-	s := tengo.NewScript([]byte(`a := 5`))
-	s.SetMaxConstObjects(1) // limit = 1
-	_, err := s.Compile()
+func TestScript_BuiltinModules(t *testing.T) {
+	s := tengo.NewScript([]byte(`math := import("math"); a := math.abs(-19.84)`))
+	s.SetImports(stdlib.GetModuleMap("math"))
+	c, err := s.CompileRun()
 	require.NoError(t, err)
-	s.SetMaxConstObjects(0) // limit = 0
-	_, err = s.Compile()
-	require.Error(t, err)
-	require.Equal(t, "exceeding constant objects limit: 1", err.Error())
+	require.NotNil(t, c)
+	compiledGet(t, c, "a", 19.84)
 
-	// two constants '5' and '1'
-	s = tengo.NewScript([]byte(`a := 5 + 1`))
-	s.SetMaxConstObjects(2) // limit = 2
-	_, err = s.Compile()
+	c, err = s.CompileRun()
 	require.NoError(t, err)
-	s.SetMaxConstObjects(1) // limit = 1
-	_, err = s.Compile()
-	require.Error(t, err)
-	require.Equal(t, "exceeding constant objects limit: 2", err.Error())
+	require.NotNil(t, c)
+	compiledGet(t, c, "a", 19.84)
 
-	// duplicates will be removed
-	s = tengo.NewScript([]byte(`a := 5 + 5`))
-	s.SetMaxConstObjects(1) // limit = 1
-	_, err = s.Compile()
-	require.NoError(t, err)
-	s.SetMaxConstObjects(0) // limit = 0
-	_, err = s.Compile()
+	s.SetImports(stdlib.GetModuleMap("os"))
+	_, err = s.CompileRun()
 	require.Error(t, err)
-	require.Equal(t, "exceeding constant objects limit: 1", err.Error())
 
-	// no limit set
-	s = tengo.NewScript([]byte(`a := 1 + 2 + 3 + 4 + 5`))
-	_, err = s.Compile()
-	require.NoError(t, err)
+	s.SetImports(nil)
+	_, err = s.CompileRun()
+	require.Error(t, err)
 }
 
-func TestScriptConcurrency(t *testing.T) {
-	solve := func(a, b, c int) (d, e int) {
-		a += 2
-		b += c
-		a += b * 2
-		d = a + b + c
-		e = 0
-		for i := 1; i <= d; i++ {
-			e += i
+func TestCallByName(t *testing.T) {
+	type testArgs struct {
+		fn   string
+		args []interface{}
+		ret  interface{}
+	}
+	tests := []testArgs{
+		{fn: "add", args: []interface{}{3, 4}, ret: int64(7)},
+		{fn: "add", args: []interface{}{1, 2, 3, 4}, ret: int64(10)},
+		{fn: "mul", args: []interface{}{3, 4}, ret: int64(12)},
+		{fn: "mul", args: []interface{}{1, 2, 3, 4}, ret: int64(24)},
+		{fn: "square", args: []interface{}{3}, ret: int64(9)},
+		{fn: "fib", args: []interface{}{10}, ret: int64(55)},
+		{fn: "stringer", args: []interface{}{12345}, ret: "12345"},
+	}
+	ctx := context.Background()
+	script := tengo.NewScript([]byte(module))
+	compl, err := script.CompileRun()
+	require.NoError(t, err)
+	for i := 0; i < 3; i++ {
+		var comp *tengo.Compiled
+		if i == 0 {
+			// use same script for each test
+			comp = compl
+		} else if i == 1 {
+			// create script for each test
+			scr := tengo.NewScript([]byte(module))
+			comp, err = scr.CompileRun()
+			require.NoError(t, err)
+		} else {
+			// use clone
+			comp = compl.Clone()
 		}
-		e *= 2
-		return
+		for _, test := range tests {
+			result, err := comp.CallByName(test.fn, test.args...)
+			require.NoError(t, err)
+			require.Equal(t, test.ret, result)
+
+			resultx, err := comp.CallByNameContext(ctx, test.fn, test.args...)
+			require.NoError(t, err)
+			require.Equal(t, test.ret, resultx)
+		}
 	}
 
-	code := []byte(`
-mod1 := import("mod1")
-
-a += 2
-b += c
-a += b * 2
-
-arr := [a, b, c]
-arrstr := string(arr)
-map := {a: a, b: b, c: c}
-
-d := a + b + c
-s := 0
-
-for i:=1; i<=d; i++ {
-	s += i
 }
 
-e := mod1.double(s)
-`)
-	mod1 := map[string]tengo.Object{
-		"double": &tengo.UserFunction{
-			Value: func(args ...tengo.Object) (
-				ret tengo.Object,
-				err error,
-			) {
-				arg0, _ := tengo.ToInt64(args[0])
-				ret = &tengo.Int{Value: arg0 * 2}
-				return
-			},
+func TestCallback(t *testing.T) {
+	const callbackModule = `
+b := 2
+
+pass(func(a) {
+	return a * b
+})
+`
+	scr := tengo.NewScript([]byte(callbackModule))
+
+	var callback *tengo.Callback
+	scr.Add("pass", &tengo.UserFunction{
+		Value: func(args ...tengo.Object) (tengo.Object, error) {
+			callback = tengo.NewCallback(args[0])
+			return tengo.UndefinedValue, nil
+		},
+	})
+
+	compl, err := scr.CompileRun()
+	require.NoError(t, err)
+	require.NotNil(t, callback)
+	// unset *Compiled throws error
+	result, err := callback.Call(3)
+	require.Error(t, err)
+
+	// Set *Compiled before Call
+	result, err = callback.Set(compl).Call(3)
+	require.NoError(t, err)
+	require.Equal(t, int64(6), result)
+
+	result, err = callback.Set(compl).Call(5)
+	require.NoError(t, err)
+	require.Equal(t, int64(10), result)
+
+	// Modify the global and check the new value is reflected in the function
+	compl.Set("b", 3)
+	result, err = callback.Set(compl).Call(5)
+	require.NoError(t, err)
+	require.Equal(t, int64(15), result)
+
+	c := callback.Set(compl)
+	resultx, err := c.CallContext(context.Background(), 5)
+	require.Equal(t, result, resultx)
+}
+
+func TestClosure(t *testing.T) {
+	const closureModule = `
+mulClosure := func(a) {
+	return func(b) {
+		return a * b
+	}
+}
+
+mul2 := mulClosure(2)
+mul3 := mulClosure(3)
+`
+
+	scr := tengo.NewScript([]byte(closureModule))
+
+	compl, err := scr.CompileRun()
+	require.NoError(t, err)
+
+	result, err := compl.CallByName("mul2", 3)
+	require.NoError(t, err)
+	require.Equal(t, int64(6), result)
+
+	result, err = compl.CallByName("mul2", 5)
+	require.NoError(t, err)
+	require.Equal(t, int64(10), result)
+
+	result, err = compl.CallByName("mul3", 5)
+	require.NoError(t, err)
+	require.Equal(t, int64(15), result)
+}
+
+func TestContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	compl, err := tengo.NewScript([]byte("")).CompileRunContext(ctx)
+	require.Error(t, err)
+	require.Equal(t, context.Canceled.Error(), err.Error())
+
+	ctx, cancel = context.WithTimeout(context.Background(), 0)
+	defer cancel()
+	scr := tengo.NewScript([]byte(module))
+	compl, err = scr.CompileRunContext(context.Background())
+	require.NoError(t, err)
+	_, err = compl.CallByNameContext(ctx, "square", 2)
+	require.Error(t, err)
+	require.Equal(t, context.DeadlineExceeded.Error(), err.Error())
+}
+
+func TestImportCall(t *testing.T) {
+	module := `contains := import("text").contains`
+	scr := tengo.NewScript([]byte(module))
+	mm := stdlib.GetModuleMap(stdlib.AllModuleNames()...)
+	scr.SetImports(mm)
+	compl, err := scr.CompileRun()
+	require.NoError(t, err)
+	v, err := compl.CallByName("contains", "foo bar", "bar")
+	require.NoError(t, err)
+	require.Equal(t, true, v)
+
+	v, err = compl.CallByName("contains", "foo bar", "baz")
+	require.NoError(t, err)
+	require.Equal(t, false, v)
+
+	v, err = compl.CallByName("containsX", "foo bar", "bar")
+	require.True(t, strings.Contains(err.Error(), "not found"))
+}
+
+func TestCallable(t *testing.T) {
+	// taken from tengo quick start example
+	src := `
+each := func(seq, fn) {
+    for x in seq { fn(x) }
+}
+
+sum := 0
+mul := 1
+
+f := func(x) {
+	sum += x
+	mul *= x
+}
+
+each([a, b, c, d], f)`
+
+	script := tengo.NewScript([]byte(src))
+
+	// set values
+	err := script.Add("a", 1)
+	require.NoError(t, err)
+	err = script.Add("b", 9)
+	require.NoError(t, err)
+	err = script.Add("c", 8)
+	require.NoError(t, err)
+	err = script.Add("d", 4)
+	require.NoError(t, err)
+
+	// compile and run the script
+	compl, err := script.CompileRunContext(context.Background())
+	require.NoError(t, err)
+
+	// retrieve values
+	sum := compl.Get("sum")
+	mul := compl.Get("mul")
+	require.Equal(t, 22, sum.Int())
+	require.Equal(t, 288, mul.Int())
+
+	_, err = compl.CallByName("f", 2)
+	require.NoError(t, err)
+
+	sum = compl.Get("sum")
+	mul = compl.Get("mul")
+	require.Equal(t, 22+2, sum.Int())
+	require.Equal(t, 288*2, mul.Int())
+
+	var args []tengo.Object
+	eachf := &tengoCallable{
+		callFunc: func(a ...tengo.Object) (tengo.Object, error) {
+			if len(a) != 1 {
+				panic(fmt.Errorf("1 argument is expected but got %d",
+					len(a)))
+			}
+			args = append(args, a[0])
+			return tengo.UndefinedValue, nil
 		},
 	}
-
-	scr := tengo.NewScript(code)
-	_ = scr.Add("a", 0)
-	_ = scr.Add("b", 0)
-	_ = scr.Add("c", 0)
-	mods := tengo.NewModuleMap()
-	mods.AddBuiltinModule("mod1", mod1)
-	scr.SetImports(mods)
-	compiled, err := scr.Compile()
+	nums := []interface{}{1, 2, 3, 4}
+	_, err = compl.CallByName("each", nums, eachf)
 	require.NoError(t, err)
-
-	executeFn := func(compiled *tengo.Compiled, a, b, c int) (d, e int) {
-		_ = compiled.Set("a", a)
-		_ = compiled.Set("b", b)
-		_ = compiled.Set("c", c)
-		err := compiled.Run()
-		require.NoError(t, err)
-		d = compiled.Get("d").Int()
-		e = compiled.Get("e").Int()
-		return
+	require.Equal(t, 4, len(args))
+	for i, v := range args {
+		vv := tengo.ToInterface(v)
+		require.Equal(t, int64(nums[i].(int)), vv.(int64))
 	}
+}
 
-	concurrency := 500
-	var wg sync.WaitGroup
-	wg.Add(concurrency)
-	for i := 0; i < concurrency; i++ {
-		go func(compiled *tengo.Compiled) {
-			time.Sleep(time.Duration(rand.Int63n(50)) * time.Millisecond)
-			defer wg.Done()
-
-			a := rand.Intn(10)
-			b := rand.Intn(10)
-			c := rand.Intn(10)
-
-			d, e := executeFn(compiled, a, b, c)
-			expectedD, expectedE := solve(a, b, c)
-
-			require.Equal(t, expectedD, d, "input: %d, %d, %d", a, b, c)
-			require.Equal(t, expectedE, e, "input: %d, %d, %d", a, b, c)
-		}(compiled.Clone())
+func TestGetAll(t *testing.T) {
+	script := tengo.NewScript([]byte(module))
+	compl, err := script.CompileRunContext(context.Background())
+	require.NoError(t, err)
+	vars := compl.GetAll()
+	varsMap := make(map[string]bool)
+	for _, v := range vars {
+		varsMap[v.Name()] = true
 	}
-	wg.Wait()
+	names := []string{"add", "mul", "square", "fib", "stringer"}
+	for _, v := range names {
+		require.True(t, compl.IsDefined(v))
+		require.True(t, varsMap[v])
+	}
+}
+
+type tengoCallable struct {
+	tengo.ObjectImpl
+	callFunc tengo.CallableFunc
+}
+
+func (tc *tengoCallable) CanCall() bool {
+	return true
+}
+
+func (tc *tengoCallable) Call(args ...tengo.Object) (tengo.Object, error) {
+	return tc.callFunc(args...)
 }
 
 type Counter struct {
@@ -289,15 +447,14 @@ func (o *Counter) CanCall() bool {
 }
 
 func TestScript_CustomObjects(t *testing.T) {
-	c := compile(t, `a := c1(); s := string(c1); c2 := c1; c2++`, M{
+	c := scriptCompileRun(t, `a := c1(); s := string(c1); c2 := c1; c2++`, M{
 		"c1": &Counter{value: 5},
 	})
-	compiledRun(t, c)
 	compiledGet(t, c, "a", int64(5))
 	compiledGet(t, c, "s", "Counter(5)")
 	compiledGetCounter(t, c, "c2", &Counter{value: 6})
 
-	c = compile(t, `
+	c = scriptCompileRun(t, `
 arr := [1, 2, 3, 4]
 for x in arr {
 	c1 += x
@@ -306,7 +463,6 @@ out := c1()
 `, M{
 		"c1": &Counter{value: 5},
 	})
-	compiledRun(t, c)
 	compiledGet(t, c, "out", int64(15))
 }
 
@@ -330,7 +486,7 @@ func TestScriptSourceModule(t *testing.T) {
 	mods := tengo.NewModuleMap()
 	mods.AddSourceModule("mod", []byte(`export 5`))
 	scr.SetImports(mods)
-	c, err := scr.Run()
+	c, err := scr.CompileRun()
 	require.NoError(t, err)
 	require.Equal(t, int64(5), c.Get("out").Value())
 
@@ -340,7 +496,7 @@ func TestScriptSourceModule(t *testing.T) {
 	mods.AddSourceModule("mod",
 		[]byte(`a := 3; export func() { return a + 5 }`))
 	scr.SetImports(mods)
-	c, err = scr.Run()
+	c, err = scr.CompileRun()
 	require.NoError(t, err)
 	require.Equal(t, int64(8), c.Get("out").Value())
 
@@ -358,135 +514,49 @@ func TestScriptSourceModule(t *testing.T) {
 				}},
 		})
 	scr.SetImports(mods)
-	c, err = scr.Run()
+	c, err = scr.CompileRun()
 	require.NoError(t, err)
 	require.Equal(t, "Foo", c.Get("out").Value())
 	scr.SetImports(nil)
-	_, err = scr.Run()
+	_, err = scr.CompileRun()
 	require.Error(t, err)
-}
-
-func BenchmarkArrayIndex(b *testing.B) {
-	bench(b.N, `a := [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        for i := 0; i < 1000; i++ {
-            a[0]; a[1]; a[2]; a[3]; a[4]; a[5]; a[6]; a[7]; a[7];
-        }
-    `)
-}
-
-func BenchmarkArrayIndexCompare(b *testing.B) {
-	bench(b.N, `a := [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        for i := 0; i < 1000; i++ {
-            1; 2; 3; 4; 5; 6; 7; 8; 9;
-        }
-    `)
-}
-
-func bench(n int, input string) {
-	s := tengo.NewScript([]byte(input))
-	c, err := s.Compile()
-	if err != nil {
-		panic(err)
-	}
-
-	for i := 0; i < n; i++ {
-		if err := c.Run(); err != nil {
-			panic(err)
-		}
-	}
 }
 
 type M map[string]interface{}
 
 func TestCompiled_Get(t *testing.T) {
-	// simple script
-	c := compile(t, `a := 5`, nil)
-	compiledRun(t, c)
+	c := scriptCompileRun(t, `a := 5`, nil)
 	compiledGet(t, c, "a", int64(5))
 
 	// user-defined variables
-	compileError(t, `a := b`, nil)          // compile error because "b" is not defined
-	c = compile(t, `a := b`, M{"b": "foo"}) // now compile with b = "foo" defined
-	compiledGet(t, c, "a", nil)             // a = undefined; because it's before Compiled.Run()
-	compiledRun(t, c)                       // Compiled.Run()
-	compiledGet(t, c, "a", "foo")           // a = "foo"
+	c = scriptCompileRun(t, `a := b`, M{"b": "foo"})
+	compiledGet(t, c, "a", "foo")
+	compileError(t, `a := b`, nil)
 }
 
 func TestCompiled_GetAll(t *testing.T) {
-	c := compile(t, `a := 5`, nil)
-	compiledRun(t, c)
+	c := scriptCompileRun(t, `a := 5`, nil)
 	compiledGetAll(t, c, M{"a": int64(5)})
 
-	c = compile(t, `a := b`, M{"b": "foo"})
-	compiledRun(t, c)
+	c = scriptCompileRun(t, `a := b`, M{"b": "foo"})
 	compiledGetAll(t, c, M{"a": "foo", "b": "foo"})
 
-	c = compile(t, `a := b; b = 5`, M{"b": "foo"})
-	compiledRun(t, c)
+	c = scriptCompileRun(t, `a := b; b = 5`, M{"b": "foo"})
 	compiledGetAll(t, c, M{"a": "foo", "b": int64(5)})
 }
 
-func TestCompiled_IsDefined(t *testing.T) {
-	c := compile(t, `a := 5`, nil)
-	compiledIsDefined(t, c, "a", false) // a is not defined before Run()
-	compiledRun(t, c)
-	compiledIsDefined(t, c, "a", true)
-	compiledIsDefined(t, c, "b", false)
-}
-
 func TestCompiled_Set(t *testing.T) {
-	c := compile(t, `a := b`, M{"b": "foo"})
-	compiledRun(t, c)
-	compiledGet(t, c, "a", "foo")
-
-	// replace value of 'b'
-	err := c.Set("b", "bar")
-	require.NoError(t, err)
-	compiledRun(t, c)
-	compiledGet(t, c, "a", "bar")
-
-	// try to replace undefined variable
-	err = c.Set("c", 1984)
-	require.Error(t, err) // 'c' is not defined
-
-	// case #2
-	c = compile(t, `
-a := func() { 
-	return func() {
-		return b + 5
-	}() 
-}()`, M{"b": 5})
-	compiledRun(t, c)
-	compiledGet(t, c, "a", int64(10))
-	err = c.Set("b", 10)
-	require.NoError(t, err)
-	compiledRun(t, c)
-	compiledGet(t, c, "a", int64(15))
-}
-
-func TestCompiled_RunContext(t *testing.T) {
-	// machine completes normally
-	c := compile(t, `a := 5`, nil)
-	err := c.RunContext(context.Background())
-	require.NoError(t, err)
+	c := scriptCompileRun(t, `a := 5`, nil)
 	compiledGet(t, c, "a", int64(5))
-
-	// timeout
-	c = compile(t, `for true {}`, nil)
-	ctx, cancel := context.WithTimeout(context.Background(),
-		1*time.Millisecond)
-	defer cancel()
-	err = c.RunContext(ctx)
-	require.Equal(t, context.DeadlineExceeded, err)
+	c.Set("a", 6)
+	compiledGet(t, c, "a", int64(6))
 }
 
 func TestCompiled_CustomObject(t *testing.T) {
-	c := compile(t, `r := (t<130)`, M{"t": &customNumber{value: 123}})
-	compiledRun(t, c)
+	c := scriptCompileRun(t, `r := (t<130)`, M{"t": &customNumber{value: 123}})
 	compiledGet(t, c, "r", true)
 
-	c = compile(t, `r := (t>13)`, M{"t": &customNumber{value: 123}})
-	compiledRun(t, c)
+	c = scriptCompileRun(t, `r := (t>13)`, M{"t": &customNumber{value: 123}})
 	compiledGet(t, c, "r", true)
 }
 
@@ -569,21 +639,27 @@ export func(ctx) {
 	})
 	require.NoError(t, err)
 
-	_, err = s.Run()
+	_, err = s.CompileRun()
 	require.True(t, strings.Contains(err.Error(), "expression:4:6"))
 }
 
-func compile(t *testing.T, input string, vars M) *tengo.Compiled {
-	s := tengo.NewScript([]byte(input))
-	for vn, vv := range vars {
-		err := s.Add(vn, vv)
-		require.NoError(t, err)
-	}
+func TestCompiled_Clone(t *testing.T) {
+	script := tengo.NewScript([]byte(`
+count += 1
+data["b"] = 2
+`))
 
-	c, err := s.Compile()
+	err := script.Add("data", map[string]interface{}{"a": 1})
 	require.NoError(t, err)
-	require.NotNil(t, c)
-	return c
+
+	err = script.Add("count", 1000)
+	require.NoError(t, err)
+
+	compiled, err := script.CompileRun()
+	require.NoError(t, err)
+
+	require.Equal(t, 1001, compiled.Get("count").Int())
+	require.Equal(t, 2, len(compiled.Get("data").Map()))
 }
 
 func compileError(t *testing.T, input string, vars M) {
@@ -592,13 +668,20 @@ func compileError(t *testing.T, input string, vars M) {
 		err := s.Add(vn, vv)
 		require.NoError(t, err)
 	}
-	_, err := s.Compile()
+	_, err := s.CompileRun()
 	require.Error(t, err)
 }
 
-func compiledRun(t *testing.T, c *tengo.Compiled) {
-	err := c.Run()
+func scriptCompileRun(t *testing.T, src string, vars M) *tengo.Compiled {
+	s := tengo.NewScript([]byte(src))
+	for vn, vv := range vars {
+		err := s.Add(vn, vv)
+		require.NoError(t, err)
+	}
+	c, err := s.CompileRun()
 	require.NoError(t, err)
+
+	return c
 }
 
 func compiledGet(
@@ -618,7 +701,7 @@ func compiledGetAll(
 	expected M,
 ) {
 	vars := c.GetAll()
-	require.Equal(t, len(expected), len(vars))
+	require.Equal(t, len(expected), len(vars)-1) // One variable is reserved.
 
 	for k, v := range expected {
 		var found bool
@@ -639,29 +722,4 @@ func compiledIsDefined(
 	expected bool,
 ) {
 	require.Equal(t, expected, c.IsDefined(name))
-}
-func TestCompiled_Clone(t *testing.T) {
-	script := tengo.NewScript([]byte(`
-count += 1
-data["b"] = 2
-`))
-
-	err := script.Add("data", map[string]interface{}{"a": 1})
-	require.NoError(t, err)
-
-	err = script.Add("count", 1000)
-	require.NoError(t, err)
-
-	compiled, err := script.Compile()
-	require.NoError(t, err)
-
-	clone := compiled.Clone()
-	err = clone.RunContext(context.Background())
-	require.NoError(t, err)
-
-	require.Equal(t, 1000, compiled.Get("count").Int())
-	require.Equal(t, 1, len(compiled.Get("data").Map()))
-
-	require.Equal(t, 1001, clone.Get("count").Int())
-	require.Equal(t, 2, len(clone.Get("data").Map()))
 }
