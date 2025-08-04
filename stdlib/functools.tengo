@@ -1,0 +1,55 @@
+export {
+    filter: func(x, fn) {
+        res := []
+
+        for elem in x {
+            if fn(elem) {
+                res = append(res, elem)
+            }
+        }
+
+        return res
+    },
+
+    foreach: func(x, fn) {
+        for _, v in x {
+            fn(v)
+        }
+    },
+
+    map: func(x, fn) {
+        res := []
+
+        for _, v in x {
+            res = append(res, fn(v))
+        }
+
+        return res
+    },
+    
+    partial: func(fn, ...fnargs) {
+        return func(...args) {
+            a := []
+
+            for v in fnargs {
+                a = append(a, v)
+            }
+
+            for v in args {
+                a = append(a, v)
+            }
+
+            return fn(a...)
+        }
+    },
+
+    reduce: func(x, init, fn) {
+        acc := init
+
+        for _, v in x {
+            acc = fn(acc, v)
+        }
+
+        return acc
+    }
+}

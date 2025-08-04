@@ -113,6 +113,10 @@ func Equal(
 		if !equalIntSlice(expected, actual.([]int)) {
 			failExpectedActual(t, expected, actual, msg...)
 		}
+	case []any:
+		if !equalAnySlice(expected, actual.([]any)) {
+			failExpectedActual(t, expected, actual, msg...)
+		}
 	case bool:
 		if expected != actual.(bool) {
 			failExpectedActual(t, expected, actual, msg...)
@@ -239,6 +243,18 @@ func message(formatArgs ...interface{}) string {
 }
 
 func equalIntSlice(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func equalAnySlice(a, b []any) bool {
 	if len(a) != len(b) {
 		return false
 	}
