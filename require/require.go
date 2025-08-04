@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -118,6 +119,14 @@ func Equal(
 		}
 	case rune:
 		if expected != actual.(rune) {
+			failExpectedActual(t, expected, actual, msg...)
+		}
+	case time.Time:
+		if !expected.Equal(actual.(time.Time)) {
+			failExpectedActual(t, expected, actual, msg...)
+		}
+	case time.Duration:
+		if expected != actual.(time.Duration) {
 			failExpectedActual(t, expected, actual, msg...)
 		}
 	case *tengo.Symbol:

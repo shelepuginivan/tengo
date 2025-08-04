@@ -6,6 +6,14 @@ import (
 	"github.com/shelepuginivan/tengo"
 )
 
+// TengoBool converts Go bool into Tengo bool.
+func TengoBool(b bool) tengo.Object {
+	if b {
+		return tengo.TrueValue
+	}
+	return tengo.FalseValue
+}
+
 // FuncAR transform a function of 'func()' signature into CallableFunc type.
 func FuncAR(fn func()) tengo.CallableFunc {
 	return func(args ...tengo.Object) (ret tengo.Object, err error) {
