@@ -1,7 +1,5 @@
 package stdlib
 
-//go:generate go run gensrcmods.go
-
 import (
 	"github.com/shelepuginivan/tengo"
 )

@@ -1,7 +1,4 @@
-generate:
-	go generate ./...
-
-test: generate
+test:
 	go test -race -cover ./...
 
 fmt:

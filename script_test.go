@@ -92,17 +92,22 @@ func TestScript_CompileRun(t *testing.T) {
 }
 
 func TestScript_SourceModules(t *testing.T) {
-	s := tengo.NewScript([]byte(`
-enum := import("enum")
-a := enum.all([1,2,3], func(_, v) { 
-	return v > 0 
-})
+	s := tengo.NewScript([]byte(`a := import("srcmod").sum(1, 2, 3)`))
+
+	mm := tengo.NewModuleMap()
+	mm.AddSourceModule("srcmod", []byte(`
+export {
+	sum: func(a, b, c) {
+		return a + b + c
+	}
+}
 `))
-	s.SetImports(stdlib.GetModuleMap("enum"))
+
+	s.SetImports(mm)
 	c, err := s.CompileRun()
 	require.NoError(t, err)
 	require.NotNil(t, c)
-	compiledGet(t, c, "a", true)
+	compiledGet(t, c, "a", int64(6))
 
 	s.SetImports(nil)
 	_, err = s.CompileRun()
