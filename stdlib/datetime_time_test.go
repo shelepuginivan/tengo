@@ -10,16 +10,16 @@ import (
 )
 
 func TestToTime(t *testing.T) {
-	compiled, err := run(`
+	compiled, err := runWith(`
 datetime := import("datetime")
 
-custom := datetime.now()
+valid := datetime.now()
 invalid := "????"
-`)
+`, "datetime")
 
 	require.NoError(t, err)
 
-	_, ok := ToTime(compiled.Get("custom").Object())
+	_, ok := ToTime(compiled.Get("valid").Object())
 	require.True(t, ok)
 
 	_, ok = ToTime(compiled.Get("invalid").Object())
@@ -28,18 +28,18 @@ invalid := "????"
 
 func TestTime(t *testing.T) {
 	t.Run("Type name", func(t *testing.T) {
-		compiled, err := run(`r := type_name(import("datetime").now())`)
+		compiled, err := runWith(`r := type_name(import("datetime").now())`, "datetime")
 
 		require.NoError(t, err)
 		require.Equal(t, "datetime.Time", compiled.Get("r").Value())
 	})
 
 	t.Run("String", func(t *testing.T) {
-		compiled, err := run(`
+		compiled, err := runWith(`
 datetime := import("datetime")
 v1 := string(datetime.new(2003, datetime.december, 26, 20, 04, 37, 0, "UTC"))
 v2 := string(datetime.new(2025, datetime.july, 29, 23, 27, 34, 0, "UTC"))
-`)
+`, "datetime")
 
 		require.NoError(t, err)
 		require.Equal(t,
@@ -53,7 +53,7 @@ v2 := string(datetime.new(2025, datetime.july, 29, 23, 27, 34, 0, "UTC"))
 	})
 
 	t.Run("Methods", func(t *testing.T) {
-		compiled, err := run(`
+		compiled, err := runWith(`
 datetime := import("datetime")
 
 base := datetime.new(2003, datetime.december, 26, 20, 04, 37)
@@ -81,7 +81,7 @@ v14 := base.month()
 v15 := base.unix()
 
 utc := base.utc()
-`)
+`, "datetime")
 
 		require.NoError(t, err)
 
@@ -116,7 +116,7 @@ utc := base.utc()
 	})
 
 	t.Run("Operators", func(t *testing.T) {
-		compiled, err := run(`
+		compiled, err := runWith(`
 datetime := import("datetime")
 
 base := datetime.new(2003, datetime.december, 26, 20, 04, 37)
@@ -135,7 +135,7 @@ v10 := bool(datetime.new(1, 1, 1, 0, 0, 0, 0, "UTC"))
 
 t1 := base + datetime.hour
 t2 := base - datetime.minute
-`)
+`, "datetime")
 
 		require.NoError(t, err)
 
@@ -174,7 +174,7 @@ datetime.now() / datetime.second
 		}
 
 		for _, script := range scripts {
-			_, err := run(script)
+			_, err := runWith(script, "datetime")
 			require.Error(t, err)
 		}
 	})
@@ -237,7 +237,7 @@ datetime.now().utc("ong fr")
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				_, err := run(tt.script)
+				_, err := runWith(tt.script, "datetime")
 				require.Error(t, err)
 			})
 		}

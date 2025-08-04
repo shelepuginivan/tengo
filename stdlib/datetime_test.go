@@ -10,20 +10,11 @@ import (
 	. "github.com/shelepuginivan/tengo/stdlib"
 )
 
-func run(source string) (*tengo.Compiled, error) {
-	mm := GetModuleMap("datetime")
-
-	s := tengo.NewScript([]byte(source))
-	s.SetImports(mm)
-
-	return s.CompileRun()
-}
-
 func TestNew(t *testing.T) {
-	compiled, err := run(`
+	compiled, err := runWith(`
 datetime := import("datetime")
 r := datetime.new(2025, datetime.july, 26, 23, 44, 35, 0, "Europe/Berlin")
-`)
+`, "datetime")
 
 	require.NoError(t, err)
 
@@ -34,10 +25,10 @@ r := datetime.new(2025, datetime.july, 26, 23, 44, 35, 0, "Europe/Berlin")
 	require.True(t, ok)
 	require.Equal(t, expected, actual.GoTime())
 
-	_, err = run(`
+	_, err = runWith(`
 datetime := import("datetime")
 r := datetime.new(2025, datetime.july, 26, 23, 44, 35, 0, "Haro/Hawayu")
-`)
+`, "datetime")
 
 	require.Error(t, err)
 
@@ -58,7 +49,7 @@ r := datetime.new(2025, datetime.july, 26, 23, 44, 35, 0, "Haro/Hawayu")
 
 		for _, tt := range tests {
 			t.Run("", func(t *testing.T) {
-				_, err := run(tt)
+				_, err := runWith(tt, "datetime")
 				require.Error(t, err)
 			})
 		}
@@ -68,7 +59,7 @@ r := datetime.new(2025, datetime.july, 26, 23, 44, 35, 0, "Haro/Hawayu")
 func TestNow(t *testing.T) {
 	beforeRun := time.Now()
 
-	compiled, err := run(`r := import("datetime").now()`)
+	compiled, err := runWith(`r := import("datetime").now()`, "datetime")
 	require.NoError(t, err)
 
 	afterRun := time.Now()
@@ -88,7 +79,7 @@ func TestNow(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run("", func(t *testing.T) {
-				_, err := run(tt)
+				_, err := runWith(tt, "datetime")
 				require.Error(t, err)
 			})
 		}
@@ -96,10 +87,10 @@ func TestNow(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
-	compiled, err := run(`
+	compiled, err := runWith(`
 datetime := import("datetime")
 r := datetime.parse(datetime.rfc_email, "Sat, 26 Jul 2025 23:51:29 +0300")
-`)
+`, "datetime")
 
 	require.NoError(t, err)
 
@@ -109,10 +100,10 @@ r := datetime.parse(datetime.rfc_email, "Sat, 26 Jul 2025 23:51:29 +0300")
 	require.True(t, ok)
 	require.Equal(t, expected, actual.GoTime())
 
-	_, err = run(`
+	_, err = runWith(`
 datetime := import("datetime")
 r := datetime.parse(datetime.rfc_email, "Sat Jul 26 11:51:03 PM MSK 2025")
-`)
+`, "datetime")
 
 	require.Error(t, err)
 
@@ -125,7 +116,7 @@ r := datetime.parse(datetime.rfc_email, "Sat Jul 26 11:51:03 PM MSK 2025")
 
 		for _, tt := range tests {
 			t.Run("", func(t *testing.T) {
-				_, err := run(tt)
+				_, err := runWith(tt, "datetime")
 				require.Error(t, err)
 			})
 		}
@@ -133,10 +124,10 @@ r := datetime.parse(datetime.rfc_email, "Sat Jul 26 11:51:03 PM MSK 2025")
 }
 
 func TestParseDuration(t *testing.T) {
-	compiled, err := run(`
+	compiled, err := runWith(`
 datetime := import("datetime")
 r := datetime.parse_duration("1h30m20s14ms2us234ns")
-`)
+`, "datetime")
 
 	require.NoError(t, err)
 
@@ -152,10 +143,10 @@ r := datetime.parse_duration("1h30m20s14ms2us234ns")
 	require.True(t, ok)
 	require.Equal(t, expected, time.Duration(actual))
 
-	_, err = run(`
+	_, err = runWith(`
 datetime := import("datetime")
 r := datetime.parse_duration("foo bar baz whatever")
-`)
+`, "datetime")
 
 	require.Error(t, err)
 
@@ -167,7 +158,7 @@ r := datetime.parse_duration("foo bar baz whatever")
 
 		for _, tt := range tests {
 			t.Run("", func(t *testing.T) {
-				_, err := run(tt)
+				_, err := runWith(tt, "datetime")
 				require.Error(t, err)
 			})
 		}

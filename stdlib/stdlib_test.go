@@ -21,6 +21,15 @@ func TestAllModuleNames(t *testing.T) {
 		len(names))
 }
 
+func runWith(source string, modules ...string) (*tengo.Compiled, error) {
+	mm := stdlib.GetModuleMap(modules...)
+
+	s := tengo.NewScript([]byte(source))
+	s.SetImports(mm)
+
+	return s.CompileRun()
+}
+
 func TestModulesRun(t *testing.T) {
 	// os.File
 	expect(t, `
