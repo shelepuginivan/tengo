@@ -3,6 +3,7 @@ package require
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"reflect"
 	"runtime"
 	"strings"
@@ -203,6 +204,42 @@ func Equal(
 		}
 	default:
 		panic(fmt.Errorf("type not implemented: %T", expected))
+	}
+}
+
+func InDelta(t *testing.T, expected, actual, delta interface{}, msg ...interface{}) {
+	var addMsg string
+	if len(msg) > 0 {
+		addMsg = "\nMessage:  " + message(msg...)
+	}
+
+	e, ok := expected.(float64)
+	if !ok {
+		t.Logf("\nError trace:\n\t%s\nExpected value should be float64%s",
+			strings.Join(errorTrace(), "\n\t"),
+			addMsg)
+	}
+
+	a, ok := actual.(float64)
+	if !ok {
+		t.Logf("\nError trace:\n\t%s\nActual value should be float64%s",
+			strings.Join(errorTrace(), "\n\t"),
+			addMsg)
+	}
+
+	d, ok := delta.(float64)
+	if !ok {
+		t.Logf("\nError trace:\n\t%s\nDelta value should be float64%s",
+			strings.Join(errorTrace(), "\n\t"),
+			addMsg)
+	}
+
+	if math.Abs(e-a) > d {
+		t.Logf("\nError trace:\n\t%s\nActual value %v is not within the delta of %v with expected %v%s",
+			strings.Join(errorTrace(), "\n\t"),
+			actual, delta, expected,
+			addMsg)
+		t.Fail()
 	}
 }
 

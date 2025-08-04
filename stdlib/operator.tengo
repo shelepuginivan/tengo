@@ -1,0 +1,77 @@
+export {
+    add: func(a, b) {
+        return a + b
+    },
+
+    sub: func(a, b) {
+        return a - b
+    },
+
+    mul: func(a, b) {
+        return a * b
+    },
+
+    div: func(a, b) {
+        return float(a) / float(b)
+    },
+
+    floordiv: func(a, b) {
+        return a / b
+    },
+
+    neg: func(a) {
+        return -a
+    },
+
+    eq: func(a, b) {
+        return a == b
+    },
+
+    ne: func(a, b) {
+        return a != b
+    },
+
+    gt: func(a, b) {
+        return a > b
+    },
+
+    ge: func(a, b) {
+        return a >= b
+    },
+
+    lt: func(a, b) {
+        return a < b
+    },
+
+    le: func(a, b) {
+        return a <= b
+    },
+
+    not: func(a) {
+        return !a
+    },
+
+    and: func(a, b) {
+        return a & b
+    },
+
+    or: func(a, b) {
+        return a | b
+    },
+
+    xor: func(a, b) {
+        return a ^ b
+    },
+
+    inv: func(a) {
+        return ^a
+    },
+
+    shift_left: func(a, b) {
+        return a << b
+    },
+
+    shift_right: func(a, b) {
+        return a >> b
+    }
+}
