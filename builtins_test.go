@@ -28,7 +28,7 @@ func Test_builtinDelete(t *testing.T) {
 		want      tengo.Object
 		wantErr   bool
 		wantedErr error
-		target    interface{}
+		target    any
 	}{
 		{name: "invalid-arg", args: args{[]tengo.Object{&tengo.String{},
 			&tengo.String{}}}, wantErr: true,

@@ -84,8 +84,8 @@ func fmtSprintf(args ...tengo.Object) (ret tengo.Object, err error) {
 	return &tengo.String{Value: s}, nil
 }
 
-func getPrintArgs(args ...tengo.Object) ([]interface{}, error) {
-	var printArgs []interface{}
+func getPrintArgs(args ...tengo.Object) ([]any, error) {
+	var printArgs []any
 	l := 0
 	for _, arg := range args {
 		s, _ := tengo.ToString(arg)

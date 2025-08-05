@@ -139,17 +139,17 @@ func TestScript_BuiltinModules(t *testing.T) {
 func TestCallByName(t *testing.T) {
 	type testArgs struct {
 		fn   string
-		args []interface{}
-		ret  interface{}
+		args []any
+		ret  any
 	}
 	tests := []testArgs{
-		{fn: "add", args: []interface{}{3, 4}, ret: int64(7)},
-		{fn: "add", args: []interface{}{1, 2, 3, 4}, ret: int64(10)},
-		{fn: "mul", args: []interface{}{3, 4}, ret: int64(12)},
-		{fn: "mul", args: []interface{}{1, 2, 3, 4}, ret: int64(24)},
-		{fn: "square", args: []interface{}{3}, ret: int64(9)},
-		{fn: "fib", args: []interface{}{10}, ret: int64(55)},
-		{fn: "stringer", args: []interface{}{12345}, ret: "12345"},
+		{fn: "add", args: []any{3, 4}, ret: int64(7)},
+		{fn: "add", args: []any{1, 2, 3, 4}, ret: int64(10)},
+		{fn: "mul", args: []any{3, 4}, ret: int64(12)},
+		{fn: "mul", args: []any{1, 2, 3, 4}, ret: int64(24)},
+		{fn: "square", args: []any{3}, ret: int64(9)},
+		{fn: "fib", args: []any{10}, ret: int64(55)},
+		{fn: "stringer", args: []any{12345}, ret: "12345"},
 	}
 	ctx := context.Background()
 	script := tengo.NewScript([]byte(module))
@@ -157,18 +157,21 @@ func TestCallByName(t *testing.T) {
 	require.NoError(t, err)
 	for i := 0; i < 3; i++ {
 		var comp *tengo.Compiled
-		if i == 0 {
+
+		switch i {
+		case 0:
 			// use same script for each test
 			comp = compl
-		} else if i == 1 {
+		case 1:
 			// create script for each test
 			scr := tengo.NewScript([]byte(module))
 			comp, err = scr.CompileRun()
 			require.NoError(t, err)
-		} else {
+		default:
 			// use clone
 			comp = compl.Clone()
 		}
+
 		for _, test := range tests {
 			result, err := comp.CallByName(test.fn, test.args...)
 			require.NoError(t, err)
@@ -204,11 +207,11 @@ pass(func(a) {
 	require.NoError(t, err)
 	require.NotNil(t, callback)
 	// unset *Compiled throws error
-	result, err := callback.Call(3)
+	_, err = callback.Call(3)
 	require.Error(t, err)
 
 	// Set *Compiled before Call
-	result, err = callback.Set(compl).Call(3)
+	result, err := callback.Set(compl).Call(3)
 	require.NoError(t, err)
 	require.Equal(t, int64(6), result)
 
@@ -224,6 +227,7 @@ pass(func(a) {
 
 	c := callback.Set(compl)
 	resultx, err := c.CallContext(context.Background(), 5)
+	require.NoError(t, err)
 	require.Equal(t, result, resultx)
 }
 
@@ -260,14 +264,14 @@ mul3 := mulClosure(3)
 func TestContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	compl, err := tengo.NewScript([]byte("")).CompileRunContext(ctx)
+	_, err := tengo.NewScript([]byte("")).CompileRunContext(ctx)
 	require.Error(t, err)
 	require.Equal(t, context.Canceled.Error(), err.Error())
 
 	ctx, cancel = context.WithTimeout(context.Background(), 0)
 	defer cancel()
 	scr := tengo.NewScript([]byte(module))
-	compl, err = scr.CompileRunContext(context.Background())
+	compl, err := scr.CompileRunContext(context.Background())
 	require.NoError(t, err)
 	_, err = compl.CallByNameContext(ctx, "square", 2)
 	require.Error(t, err)
@@ -289,7 +293,7 @@ func TestImportCall(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, false, v)
 
-	v, err = compl.CallByName("containsX", "foo bar", "bar")
+	_, err = compl.CallByName("containsX", "foo bar", "bar")
 	require.True(t, strings.Contains(err.Error(), "not found"))
 }
 
@@ -351,7 +355,7 @@ each([a, b, c, d], f)`
 			return tengo.UndefinedValue, nil
 		},
 	}
-	nums := []interface{}{1, 2, 3, 4}
+	nums := []any{1, 2, 3, 4}
 	_, err = compl.CallByName("each", nums, eachf)
 	require.NoError(t, err)
 	require.Equal(t, 4, len(args))
@@ -527,7 +531,7 @@ func TestScriptSourceModule(t *testing.T) {
 	require.Error(t, err)
 }
 
-type M map[string]interface{}
+type M map[string]any
 
 func TestCompiled_Get(t *testing.T) {
 	c := scriptCompileRun(t, `a := 5`, nil)
@@ -639,7 +643,7 @@ export func(ctx) {
 	mods.AddSourceModule("expression", []byte(src))
 	s.SetImports(mods)
 
-	err := s.Add("ctx", map[string]interface{}{
+	err := s.Add("ctx", map[string]any{
 		"ctx": 12,
 	})
 	require.NoError(t, err)
@@ -654,7 +658,7 @@ count += 1
 data["b"] = 2
 `))
 
-	err := script.Add("data", map[string]interface{}{"a": 1})
+	err := script.Add("data", map[string]any{"a": 1})
 	require.NoError(t, err)
 
 	err = script.Add("count", 1000)
@@ -693,7 +697,7 @@ func compiledGet(
 	t *testing.T,
 	c *tengo.Compiled,
 	name string,
-	expected interface{},
+	expected any,
 ) {
 	v := c.Get(name)
 	require.NotNil(t, v)
@@ -718,13 +722,4 @@ func compiledGetAll(
 		}
 		require.True(t, found, "variable '%s' not found", k)
 	}
-}
-
-func compiledIsDefined(
-	t *testing.T,
-	c *tengo.Compiled,
-	name string,
-	expected bool,
-) {
-	require.Equal(t, expected, c.IsDefined(name))
 }

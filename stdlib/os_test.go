@@ -1,7 +1,6 @@
 package stdlib_test
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -13,7 +12,7 @@ import (
 
 func TestReadFile(t *testing.T) {
 	content := []byte("the quick brown fox jumps over the lazy dog")
-	tf, err := ioutil.TempFile("", "test")
+	tf, err := os.CreateTemp("", "test")
 	require.NoError(t, err)
 	defer func() { _ = os.Remove(tf.Name()) }()
 
@@ -34,7 +33,7 @@ func TestFileStatArgs(t *testing.T) {
 
 func TestFileStatFile(t *testing.T) {
 	content := []byte("the quick brown fox jumps over the lazy dog")
-	tf, err := ioutil.TempFile("", "test")
+	tf, err := os.CreateTemp("", "test")
 	require.NoError(t, err)
 	defer func() { _ = os.Remove(tf.Name()) }()
 
@@ -60,7 +59,7 @@ func TestFileStatFile(t *testing.T) {
 }
 
 func TestFileStatDir(t *testing.T) {
-	td, err := ioutil.TempDir("", "test")
+	td, err := os.MkdirTemp("", "test")
 	require.NoError(t, err)
 	defer func() { _ = os.RemoveAll(td) }()
 

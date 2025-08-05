@@ -142,7 +142,7 @@ func (s *Script) prepCompile() (
 }
 
 // Add adds a new variable or updates an existing variable to the script.
-func (s *Script) Add(name string, value interface{}) error {
+func (s *Script) Add(name string, value any) error {
 	if name == reservedVar {
 		return errors.New("variable name must be different")
 	}
@@ -222,7 +222,7 @@ func (c *Compiled) Clone() *Compiled {
 // CallByName calls callable Object by its name and with given
 // arguments, and returns result.
 // args must be convertible to supported Tengo types.
-func (c *Compiled) CallByName(fn string, args ...interface{}) (interface{}, error) {
+func (c *Compiled) CallByName(fn string, args ...any) (any, error) {
 	return c.CallByNameContext(context.Background(), fn, args...)
 }
 
@@ -230,7 +230,7 @@ func (c *Compiled) CallByName(fn string, args ...interface{}) (interface{}, erro
 // arguments, and returns result.
 // args must be convertible to supported Tengo types.
 func (c *Compiled) CallByNameContext(ctx context.Context,
-	fn string, args ...interface{}) (interface{}, error) {
+	fn string, args ...any) (any, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -251,14 +251,14 @@ func (c *Compiled) CallByNameContext(ctx context.Context,
 
 // Call calls callable Object with given arguments, and returns result.
 // args must be convertible to supported Tengo types.
-func (c *Compiled) Call(fn Object, args ...interface{}) (interface{}, error) {
+func (c *Compiled) Call(fn Object, args ...any) (any, error) {
 	return c.CallContext(context.Background(), fn, args...)
 }
 
 // CallContext calls callable Object with given arguments, and returns result.
 // args must be convertible to supported Tengo types.
 func (c *Compiled) CallContext(ctx context.Context, fn Object,
-	args ...interface{}) (interface{}, error) {
+	args ...any) (any, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -273,7 +273,7 @@ func (c *Compiled) CallContext(ctx context.Context, fn Object,
 }
 
 func (c *Compiled) call(ctx context.Context, cfn Object,
-	args ...interface{}) (interface{}, error) {
+	args ...any) (any, error) {
 	targs := make([]Object, 0, len(args))
 	for i := range args {
 		v, err := FromInterface(args[i])
@@ -381,7 +381,7 @@ func (c *Compiled) GetAll() []*Variable {
 
 // Set replaces the value of a global variable identified by the name. An error
 // will be returned if the name was not defined during compilation.
-func (c *Compiled) Set(name string, value interface{}) error {
+func (c *Compiled) Set(name string, value any) error {
 	obj, err := FromInterface(value)
 	if err != nil {
 		return err
@@ -440,13 +440,13 @@ func runVMContext(ctx context.Context, vm *VM) (err error) {
 // but it is optional.
 // Note: Do not call CallXXX methods while script is running, it locks the VM.
 type Callback struct {
-	Args     []interface{}
+	Args     []any
 	compiled *Compiled
 	fn       Object
 }
 
 // NewCallback creates Callback object. See Callback type.
-func NewCallback(fn Object, args ...interface{}) *Callback {
+func NewCallback(fn Object, args ...any) *Callback {
 	return &Callback{
 		fn:   fn,
 		Args: args,
@@ -461,7 +461,7 @@ func (cb *Callback) Set(c *Compiled) *Callback {
 
 // Call calls Object and returns result. Set *Compiled object before
 // Call().
-func (cb *Callback) Call(args ...interface{}) (interface{}, error) {
+func (cb *Callback) Call(args ...any) (any, error) {
 	if cb.compiled == nil {
 		return nil, errors.New("compiled code not set")
 	}
@@ -471,7 +471,7 @@ func (cb *Callback) Call(args ...interface{}) (interface{}, error) {
 // CallContext calls Object and returns result. Set *Compiled object
 // before CallContext().
 func (cb *Callback) CallContext(ctx context.Context,
-	args ...interface{}) (interface{}, error) {
+	args ...any) (any, error) {
 	if cb.compiled == nil {
 		return nil, errors.New("compiled code not set")
 	}

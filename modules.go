@@ -3,7 +3,7 @@ package tengo
 // Importable interface represents importable module instance.
 type Importable interface {
 	// Import should return either an Object or module source code ([]byte).
-	Import(moduleName string) (interface{}, error)
+	Import(moduleName string) (any, error)
 }
 
 // ModuleGetter enables implementing dynamic module loading.
@@ -93,6 +93,6 @@ type SourceModule struct {
 }
 
 // Import returns a module source code.
-func (m *SourceModule) Import(_ string) (interface{}, error) {
+func (m *SourceModule) Import(_ string) (any, error) {
 	return m.Src, nil
 }

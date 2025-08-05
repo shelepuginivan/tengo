@@ -13,14 +13,14 @@ import (
 func Eval(
 	ctx context.Context,
 	expr string,
-	params map[string]interface{},
-) (interface{}, error) {
+	params map[string]any,
+) (any, error) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
 		return nil, fmt.Errorf("empty expression")
 	}
 
-	script := NewScript([]byte(fmt.Sprintf("__res__ := (%s)", expr)))
+	script := NewScript(fmt.Appendf(nil, "__res__ := (%s)", expr))
 	for pk, pv := range params {
 		err := script.Add(pk, pv)
 		if err != nil {

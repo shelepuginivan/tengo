@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -535,7 +534,7 @@ func (c *Compiler) Compile(node parser.Node) error {
 					err.Error())
 			}
 
-			moduleSrc, err := ioutil.ReadFile(modulePath)
+			moduleSrc, err := os.ReadFile(modulePath)
 			if err != nil {
 				return c.errorf(node, "module file read error: %s",
 					err.Error())
@@ -1142,7 +1141,7 @@ func (c *Compiler) error(node parser.Node, err error) error {
 func (c *Compiler) errorf(
 	node parser.Node,
 	format string,
-	args ...interface{},
+	args ...any,
 ) error {
 	return &CompilerError{
 		FileSet: c.file.Set(),
@@ -1300,7 +1299,7 @@ func (c *Compiler) emit(
 	return pos
 }
 
-func (c *Compiler) printTrace(a ...interface{}) {
+func (c *Compiler) printTrace(a ...any) {
 	const (
 		dots = ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
 		n    = len(dots)

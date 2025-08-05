@@ -9,8 +9,8 @@ import (
 	"github.com/shelepuginivan/tengo/stdlib/json"
 )
 
-type ARR = []interface{}
-type MAP = map[string]interface{}
+type ARR = []any
+type MAP = map[string]any
 
 func TestJSON(t *testing.T) {
 	testJSONEncodeDecode(t, nil)
@@ -91,7 +91,7 @@ func testDecodeError(t *testing.T, input string) {
 	require.Error(t, err)
 }
 
-func testJSONEncodeDecode(t *testing.T, v interface{}) {
+func testJSONEncodeDecode(t *testing.T, v any) {
 	o, err := tengo.FromInterface(v)
 	require.NoError(t, err)
 

@@ -19,10 +19,10 @@ import (
 
 const testOut = "out"
 
-type IARR []interface{}
-type IMAP map[string]interface{}
-type MAP = map[string]interface{}
-type ARR = []interface{}
+type IARR []any
+type IMAP map[string]any
+type MAP = map[string]any
+type ARR = []any
 
 type testopts struct {
 	modules     *tengo.ModuleMap
@@ -58,7 +58,7 @@ func (o *testopts) Stdlib() *testopts {
 	return o
 }
 
-func (o *testopts) Module(name string, mod interface{}) *testopts {
+func (o *testopts) Module(name string, mod any) *testopts {
 	c := o.copy()
 	switch mod := mod.(type) {
 	case tengo.Importable:
@@ -3381,7 +3381,7 @@ func expectRun(
 	t *testing.T,
 	input string,
 	opts *testopts,
-	expected interface{},
+	expected any,
 ) {
 	if opts == nil {
 		opts = Opts()
@@ -3428,8 +3428,10 @@ func expectRun(
 			expectedObj = &tengo.ImmutableMap{Value: eo.Value}
 		}
 
-		modules.AddSourceModule("__code__",
-			[]byte(fmt.Sprintf("out := undefined; %s; export out", input)))
+		modules.AddSourceModule(
+			"__code__",
+			fmt.Appendf(nil, "out := undefined; %s; export out", input),
+		)
 
 		res, trace, err := traceCompileRun(file, symbols, modules, maxAllocs)
 		require.NoError(t, err, "\n"+strings.Join(trace, "\n"))
@@ -3502,7 +3504,7 @@ func expectErrorAs(
 	t *testing.T,
 	input string,
 	opts *testopts,
-	expected interface{},
+	expected any,
 ) {
 	if opts == nil {
 		opts = Opts()
@@ -3640,11 +3642,11 @@ func parse(t *testing.T, input string) *parser.File {
 	return file
 }
 
-func errorObject(v interface{}) *tengo.Error {
+func errorObject(v any) *tengo.Error {
 	return &tengo.Error{Value: toObject(v)}
 }
 
-func toObject(v interface{}) tengo.Object {
+func toObject(v any) tengo.Object {
 	switch v := v.(type) {
 	case tengo.Object:
 		return v
