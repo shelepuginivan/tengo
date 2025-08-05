@@ -415,3 +415,56 @@ v2 := shift_right(16, 2)
 		}
 	})
 }
+
+func TestItemgetter(t *testing.T) {
+	compiled, err := runWith(`
+itemgetter := import("operator").itemgetter
+
+arr := [1, 2, 3, 4, 5]
+
+v1 := itemgetter(0)(arr)
+v2 := itemgetter(1)(arr)
+v3 := itemgetter(2)(arr)
+v4 := itemgetter(3)(arr)
+v5 := itemgetter(4)(arr)
+
+dict := {
+	a: 1,
+	b: 2,
+	c: 3
+}
+
+v6 := itemgetter("a")(dict)
+v7 := itemgetter("b")(dict)
+v8 := itemgetter("c")(dict)
+`, "operator")
+
+	require.NoError(t, err)
+	require.Equal(t, int64(1), compiled.Get("v1").Value())
+	require.Equal(t, int64(2), compiled.Get("v2").Value())
+	require.Equal(t, int64(3), compiled.Get("v3").Value())
+	require.Equal(t, int64(4), compiled.Get("v4").Value())
+	require.Equal(t, int64(5), compiled.Get("v5").Value())
+	require.Equal(t, int64(1), compiled.Get("v6").Value())
+	require.Equal(t, int64(2), compiled.Get("v7").Value())
+	require.Equal(t, int64(3), compiled.Get("v8").Value())
+
+	_, err = runWith(`
+itemgetter := import("operator").itemgetter
+
+itemgetter("ok")([1, 2, 3])
+`, "operator")
+	require.Error(t, err)
+
+	t.Run("Signature", func(t *testing.T) {
+		tests := []string{
+			`import("operator").itemgetter()`,
+		}
+		for _, tt := range tests {
+			t.Run("", func(t *testing.T) {
+				_, err := runWith(tt, "operator")
+				require.Error(t, err)
+			})
+		}
+	})
+}

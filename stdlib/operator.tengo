@@ -73,5 +73,11 @@ export {
 
     shift_right: func(a, b) {
         return a >> b
+    },
+
+    itemgetter: func(i) {
+        return func(arr) {
+            return arr[i]
+        }
     }
 }
