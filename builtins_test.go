@@ -400,12 +400,12 @@ func Test_builtinRange(t *testing.T) {
 				Name: "step", Expected: "int", Found: "string"},
 		},
 		{name: "zero step",
-			args:      []tengo.Object{&tengo.Int{}, &tengo.Int{}, &tengo.Int{}}, //must greate than 0
+			args:      []tengo.Object{&tengo.Int{}, &tengo.Int{}, &tengo.Int{}}, //must greater than 0
 			wantErr:   true,
 			wantedErr: tengo.ErrInvalidRangeStep,
 		},
 		{name: "negative step",
-			args:      []tengo.Object{&tengo.Int{}, &tengo.Int{}, intObject(-2)}, //must greate than 0
+			args:      []tengo.Object{&tengo.Int{}, &tengo.Int{}, intObject(-2)}, //must greater than 0
 			wantErr:   true,
 			wantedErr: tengo.ErrInvalidRangeStep,
 		},

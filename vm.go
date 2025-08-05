@@ -903,7 +903,7 @@ func indexAssign(dst, src Object, selectors []Object) error {
 			return fmt.Errorf("not index-assignable: %s", dst.TypeName())
 		}
 		if err == ErrInvalidIndexValueType {
-			return fmt.Errorf("invaid index value type: %s", src.TypeName())
+			return fmt.Errorf("invalid index value type: %s", src.TypeName())
 		}
 		return err
 	}

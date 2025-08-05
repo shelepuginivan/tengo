@@ -25,27 +25,27 @@ type MAP = map[string]any
 type ARR = []any
 
 type testopts struct {
-	modules     *tengo.ModuleMap
-	symbols     map[string]tengo.Object
-	maxAllocs   int64
-	skip2ndPass bool
+	modules        *tengo.ModuleMap
+	symbols        map[string]tengo.Object
+	maxAllocs      int64
+	skipSecondPass bool
 }
 
 func Opts() *testopts {
 	return &testopts{
-		modules:     tengo.NewModuleMap(),
-		symbols:     make(map[string]tengo.Object),
-		maxAllocs:   -1,
-		skip2ndPass: false,
+		modules:        tengo.NewModuleMap(),
+		symbols:        make(map[string]tengo.Object),
+		maxAllocs:      -1,
+		skipSecondPass: false,
 	}
 }
 
 func (o *testopts) copy() *testopts {
 	c := &testopts{
-		modules:     o.modules.Copy(),
-		symbols:     make(map[string]tengo.Object),
-		maxAllocs:   o.maxAllocs,
-		skip2ndPass: o.skip2ndPass,
+		modules:        o.modules.Copy(),
+		symbols:        make(map[string]tengo.Object),
+		maxAllocs:      o.maxAllocs,
+		skipSecondPass: o.skipSecondPass,
 	}
 	for k, v := range o.symbols {
 		c.symbols[k] = v
@@ -85,9 +85,9 @@ func (o *testopts) MaxAllocs(limit int64) *testopts {
 	return c
 }
 
-func (o *testopts) Skip2ndPass() *testopts {
+func (o *testopts) SkipSecondPass() *testopts {
 	c := o.copy()
-	c.skip2ndPass = true
+	c.skipSecondPass = true
 	return c
 }
 
@@ -692,7 +692,7 @@ func TestBuiltinFunction(t *testing.T) {
 	expectRun(t, `out = is_function(x)`,
 		Opts().Symbol("x", &StringArray{
 			Value: []string{"foo", "bar"},
-		}).Skip2ndPass(),
+		}).SkipSecondPass(),
 		false) // user object
 
 	// is_callable
@@ -707,7 +707,7 @@ func TestBuiltinFunction(t *testing.T) {
 	expectRun(t, `out = is_callable(x)`,
 		Opts().Symbol("x", &StringArray{
 			Value: []string{"foo", "bar"},
-		}).Skip2ndPass(), true) // user object
+		}).SkipSecondPass(), true) // user object
 
 	expectRun(t, `out = format("")`, nil, "")
 	expectRun(t, `out = format("foo")`, nil, "foo")
@@ -2315,45 +2315,45 @@ func TestIndexable(t *testing.T) {
 		return &StringDict{Value: map[string]string{"a": "foo", "b": "bar"}}
 	}
 	expectRun(t, `out = dict["a"]`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), "foo")
+		Opts().Symbol("dict", dict()).SkipSecondPass(), "foo")
 	expectRun(t, `out = dict["B"]`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), "bar")
+		Opts().Symbol("dict", dict()).SkipSecondPass(), "bar")
 	expectRun(t, `out = dict["x"]`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), tengo.UndefinedValue)
+		Opts().Symbol("dict", dict()).SkipSecondPass(), tengo.UndefinedValue)
 	expectError(t, `dict[0]`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), "invalid index type")
+		Opts().Symbol("dict", dict()).SkipSecondPass(), "invalid index type")
 
 	strCir := func() *StringCircle {
 		return &StringCircle{Value: []string{"one", "two", "three"}}
 	}
 	expectRun(t, `out = cir[0]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "one")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "one")
 	expectRun(t, `out = cir[1]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "two")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "two")
 	expectRun(t, `out = cir[-1]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "three")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "three")
 	expectRun(t, `out = cir[-2]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "two")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "two")
 	expectRun(t, `out = cir[3]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "one")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "one")
 	expectError(t, `cir["a"]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "invalid index type")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "invalid index type")
 
 	strArr := func() *StringArray {
 		return &StringArray{Value: []string{"one", "two", "three"}}
 	}
 	expectRun(t, `out = arr["one"]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), 0)
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), 0)
 	expectRun(t, `out = arr["three"]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), 2)
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), 2)
 	expectRun(t, `out = arr["four"]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), tengo.UndefinedValue)
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), tengo.UndefinedValue)
 	expectRun(t, `out = arr[0]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "one")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "one")
 	expectRun(t, `out = arr[1]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "two")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "two")
 	expectError(t, `arr[-1]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "index out of bounds")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "index out of bounds")
 }
 
 func TestIndexAssignable(t *testing.T) {
@@ -2361,37 +2361,37 @@ func TestIndexAssignable(t *testing.T) {
 		return &StringDict{Value: map[string]string{"a": "foo", "b": "bar"}}
 	}
 	expectRun(t, `dict["a"] = "1984"; out = dict["a"]`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), "1984")
+		Opts().Symbol("dict", dict()).SkipSecondPass(), "1984")
 	expectRun(t, `dict["c"] = "1984"; out = dict["c"]`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), "1984")
+		Opts().Symbol("dict", dict()).SkipSecondPass(), "1984")
 	expectRun(t, `dict["c"] = 1984; out = dict["C"]`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), "1984")
+		Opts().Symbol("dict", dict()).SkipSecondPass(), "1984")
 	expectError(t, `dict[0] = "1984"`,
-		Opts().Symbol("dict", dict()).Skip2ndPass(), "invalid index type")
+		Opts().Symbol("dict", dict()).SkipSecondPass(), "invalid index type")
 
 	strCir := func() *StringCircle {
 		return &StringCircle{Value: []string{"one", "two", "three"}}
 	}
 	expectRun(t, `cir[0] = "ONE"; out = cir[0]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "ONE")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "ONE")
 	expectRun(t, `cir[1] = "TWO"; out = cir[1]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "TWO")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "TWO")
 	expectRun(t, `cir[-1] = "THREE"; out = cir[2]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "THREE")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "THREE")
 	expectRun(t, `cir[0] = "ONE"; out = cir[3]`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "ONE")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "ONE")
 	expectError(t, `cir["a"] = "ONE"`,
-		Opts().Symbol("cir", strCir()).Skip2ndPass(), "invalid index type")
+		Opts().Symbol("cir", strCir()).SkipSecondPass(), "invalid index type")
 
 	strArr := func() *StringArray {
 		return &StringArray{Value: []string{"one", "two", "three"}}
 	}
 	expectRun(t, `arr[0] = "ONE"; out = arr[0]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "ONE")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "ONE")
 	expectRun(t, `arr[1] = "TWO"; out = arr[1]`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "TWO")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "TWO")
 	expectError(t, `arr["one"] = "ONE"`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "invalid index type")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "invalid index type")
 }
 
 func TestInteger(t *testing.T) {
@@ -2461,11 +2461,11 @@ func TestIterable(t *testing.T) {
 		return &StringArray{Value: []string{"one", "two", "three"}}
 	}
 	expectRun(t, `for i, s in arr { out += i }`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), 3)
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), 3)
 	expectRun(t, `for i, s in arr { out += s }`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "onetwothree")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "onetwothree")
 	expectRun(t, `for i, s in arr { out += s + i }`,
-		Opts().Symbol("arr", strArr()).Skip2ndPass(), "one0two1three2")
+		Opts().Symbol("arr", strArr()).SkipSecondPass(), "one0two1three2")
 }
 
 func TestLogical(t *testing.T) {
@@ -2704,7 +2704,7 @@ export func() {
 
 	// 'export' statement is ignored outside module
 	expectRun(t, `a := 5; export func() { a = 10 }(); out = a`,
-		Opts().Skip2ndPass(), 5)
+		Opts().SkipSecondPass(), 5)
 
 	// 'export' must be in the top-level
 	expectError(t, `import("mod1")`,
@@ -2857,19 +2857,19 @@ f()
 
 func testAllocsLimit(t *testing.T, src string, limit int64) {
 	expectRun(t, src,
-		Opts().Skip2ndPass(), tengo.UndefinedValue) // no limit
+		Opts().SkipSecondPass(), tengo.UndefinedValue) // no limit
 	expectRun(t, src,
-		Opts().MaxAllocs(limit).Skip2ndPass(), tengo.UndefinedValue)
+		Opts().MaxAllocs(limit).SkipSecondPass(), tengo.UndefinedValue)
 	expectRun(t, src,
-		Opts().MaxAllocs(limit+1).Skip2ndPass(), tengo.UndefinedValue)
+		Opts().MaxAllocs(limit+1).SkipSecondPass(), tengo.UndefinedValue)
 	if limit > 1 {
 		expectError(t, src,
-			Opts().MaxAllocs(limit-1).Skip2ndPass(),
+			Opts().MaxAllocs(limit-1).SkipSecondPass(),
 			"allocation limit exceeded")
 	}
 	if limit > 2 {
 		expectError(t, src,
-			Opts().MaxAllocs(limit-2).Skip2ndPass(),
+			Opts().MaxAllocs(limit-2).SkipSecondPass(),
 			"allocation limit exceeded")
 	}
 }
@@ -3414,7 +3414,7 @@ func expectRun(
 	}
 
 	// second pass: run the code as import module
-	if !opts.skip2ndPass {
+	if !opts.skipSecondPass {
 		file := parse(t, `out = import("__code__")`)
 		if file == nil {
 			return

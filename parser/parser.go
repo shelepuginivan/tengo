@@ -519,12 +519,12 @@ func (p *Parser) parseFuncLit() Expr {
 		defer untracep(tracep(p, "FuncLit"))
 	}
 
-	typ := p.parseFuncType()
+	funcType := p.parseFuncType()
 	p.exprLevel++
 	body := p.parseBody()
 	p.exprLevel--
 	return &FuncLit{
-		Type: typ,
+		Type: funcType,
 		Body: body,
 	}
 }

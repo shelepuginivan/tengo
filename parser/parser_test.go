@@ -1578,7 +1578,7 @@ func TestParseFloat(t *testing.T) {
 		"010.0",
 		"00010.0",
 		"08.0",
-		"0a.0", // ivalid: hex character
+		"0a.0", // invalid: hex character
 
 		// Exponents
 		"1e1",
@@ -1590,7 +1590,7 @@ func TestParseFloat(t *testing.T) {
 		"0x1p1",
 		"0x10p1",
 
-		// Examples from language specifcation (https://go.dev/ref/spec#Floating-point_literals)
+		// Examples from language specification (https://go.dev/ref/spec#Floating-point_literals)
 		"0.",
 		"72.40",
 		"072.40", // == 72.40

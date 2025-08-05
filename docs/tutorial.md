@@ -244,8 +244,8 @@ func() {        // function scope A
                 //     (shadowing 'b' from function scope A)
   }
 
-  a = "bar"     // ok: assigne new value to 'a' from global scope
-  b = 10        // ok: assigne new value to 'b'
+  a = "bar"     // ok: assign new value to 'a' from global scope
+  b = 10        // ok: assign new value to 'b'
   a := -100     // ok: define new 'a' in function scope A
                 //     (shadowing 'a' from global scope)
 
